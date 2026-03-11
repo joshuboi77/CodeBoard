@@ -27,7 +27,7 @@ interface ICodeBoardToolbarAction {
 	readonly disabled?: boolean;
 }
 
-type CodeBoardItemKind = 'text' | 'note' | 'graph';
+type CodeBoardItemKind = 'text' | 'note' | 'graph' | 'shape' | 'controls';
 
 interface ICodeBoardCopiedItem {
 	readonly kind: CodeBoardItemKind;
@@ -40,6 +40,7 @@ interface ICodeBoardCopiedItem {
 export class CodeBoardEditor extends EditorPane {
 
 	static readonly ID = 'workbench.editor.codeboard';
+	private static activeInstance: CodeBoardEditor | undefined;
 	private static readonly baseSurfaceWidth = 3200;
 	private static readonly baseSurfaceHeight = 2400;
 	private static readonly minZoomLevel = 0.5;
@@ -109,6 +110,7 @@ export class CodeBoardEditor extends EditorPane {
 		this.canvasElement = canvas;
 		this.surfaceElement = surface;
 		this.itemsLayerElement = itemsLayer;
+		CodeBoardEditor.activeInstance = this;
 		this.updateZoomPresentation();
 
 		this._register(addDisposableListener(viewport, EventType.MOUSE_DOWN, event => {
@@ -140,17 +142,17 @@ export class CodeBoardEditor extends EditorPane {
 			{
 				icon: Codicon.textSize,
 				label: localize('codeboardCreateTextBlock', "Create Text Block"),
-				onClick: () => this.addTextBlock(),
+				onClick: () => this.createBoardObject('text'),
 			},
 			{
 				icon: Codicon.note,
 				label: localize('codeboardCreateNoteBlock', "Create Note Block"),
-				onClick: () => this.addNoteBlock(),
+				onClick: () => this.createBoardObject('note'),
 			},
 			{
 				icon: Codicon.graphLine,
 				label: localize('codeboardCreateGraphBlock', "Create Graph Block"),
-				onClick: () => this.addGraphBlock(),
+				onClick: () => this.createBoardObject('graph'),
 			},
 			{
 				icon: Codicon.table,
@@ -278,6 +280,37 @@ export class CodeBoardEditor extends EditorPane {
 		}
 	}
 
+	static getActiveInstance(): CodeBoardEditor | undefined {
+		return CodeBoardEditor.activeInstance;
+	}
+
+	public createBoardObject(kind: CodeBoardItemKind): void {
+		switch (kind) {
+			case 'text':
+				this.addTextBlock();
+				break;
+			case 'note':
+				this.addNoteBlock();
+				break;
+			case 'graph':
+				this.addGraphBlock();
+				break;
+			default:
+				break;
+		}
+	}
+
+	public createWorkspaceObject(kind: 'shape' | 'controls'): void {
+		switch (kind) {
+			case 'shape':
+				this.addShapeBlock();
+				break;
+			case 'controls':
+				this.addControlsBlock();
+				break;
+		}
+	}
+
 	private addTextBlock(): void {
 		const item = this.createBoardTextBlock();
 		this.setSelectedItem(item);
@@ -351,6 +384,16 @@ export class CodeBoardEditor extends EditorPane {
 		this.setSelectedItem(item);
 	}
 
+	private addShapeBlock(): void {
+		const item = this.createBoardShapeBlock();
+		this.setSelectedItem(item);
+	}
+
+	private addControlsBlock(): void {
+		const item = this.createBoardControlsBlock();
+		this.setSelectedItem(item);
+	}
+
 	private createBoardGraphBlock(position = this.getSpawnPosition(360, 240)): HTMLElement {
 		const item = this.createBoardItem('graph', 360, 240, localize('codeboardGraphBadge', "Graph"), position);
 		item.classList.add('codeboard-board-item-graph');
@@ -389,6 +432,89 @@ export class CodeBoardEditor extends EditorPane {
 		this.registerContextMenu(item, store);
 
 		return item;
+	}
+
+	private createBoardShapeBlock(position = this.getSpawnPosition(320, 192)): HTMLElement {
+		const item = this.createBoardItem('shape', 320, 192, localize('codeboardShapeBadge', "Shape"), position);
+		item.classList.add('codeboard-board-item-shape');
+
+		const shell = document.createElement('div');
+		shell.className = 'codeboard-shape-shell';
+
+		const title = document.createElement('div');
+		title.className = 'codeboard-shape-title';
+		title.textContent = localize('codeboardShapeTitle', "Code Object");
+
+		const subtitle = document.createElement('div');
+		subtitle.className = 'codeboard-shape-subtitle';
+		subtitle.textContent = localize('codeboardShapeSubtitle', "Use this as the visual shell for a struct or function part.");
+
+		shell.appendChild(title);
+		shell.appendChild(subtitle);
+		item.appendChild(shell);
+
+		const store = this.createItemStore(item);
+		this.registerSelectableItem(item, store);
+		this.registerDraggableBoardItem(item, store);
+		this.registerContextMenu(item, store);
+
+		return item;
+	}
+
+	private createBoardControlsBlock(position = this.getSpawnPosition(300, 220)): HTMLElement {
+		const item = this.createBoardItem('controls', 300, 220, localize('codeboardControlsBadge', "Controls"), position);
+		item.classList.add('codeboard-board-item-controls');
+
+		const title = document.createElement('div');
+		title.className = 'codeboard-controls-title';
+		title.textContent = localize('codeboardControlsTitle', "Runtime Controls");
+
+		const subtitle = document.createElement('div');
+		subtitle.className = 'codeboard-controls-subtitle';
+		subtitle.textContent = localize('codeboardControlsSubtitle', "Bind parameters, toggles, and sliders to a future code object.");
+
+		const rows = document.createElement('div');
+		rows.className = 'codeboard-controls-rows';
+
+		rows.appendChild(this.createControlRow(
+			localize('codeboardControlsRowToggle', "Enabled"),
+			'codeboard-controls-toggle'
+		));
+		rows.appendChild(this.createControlRow(
+			localize('codeboardControlsRowSlider', "Threshold"),
+			'codeboard-controls-slider'
+		));
+		rows.appendChild(this.createControlRow(
+			localize('codeboardControlsRowValue', "Bias"),
+			'codeboard-controls-pill'
+		));
+
+		item.appendChild(title);
+		item.appendChild(subtitle);
+		item.appendChild(rows);
+
+		const store = this.createItemStore(item);
+		this.registerSelectableItem(item, store);
+		this.registerDraggableBoardItem(item, store);
+		this.registerContextMenu(item, store);
+
+		return item;
+	}
+
+	private createControlRow(labelText: string, valueClassName: string): HTMLElement {
+		const row = document.createElement('div');
+		row.className = 'codeboard-controls-row';
+
+		const label = document.createElement('div');
+		label.className = 'codeboard-controls-row-label';
+		label.textContent = labelText;
+
+		const value = document.createElement('div');
+		value.className = `codeboard-controls-row-value ${valueClassName}`;
+
+		row.appendChild(label);
+		row.appendChild(value);
+		return row;
 	}
 
 	private createBoardItem(kind: CodeBoardItemKind, width: number, height: number, badgeText: string | undefined, position = this.getSpawnPosition(width, height)): HTMLElement {
@@ -619,7 +745,11 @@ export class CodeBoardEditor extends EditorPane {
 			? (copiedItem.textValue || localize('codeboardEmptyTextClipboard', "Text Block"))
 			: copiedItem.kind === 'note'
 				? (copiedItem.noteText || localize('codeboardEmptyNoteClipboard', "Note Block"))
-				: localize('codeboardGraphClipboard', "Graph Block");
+				: copiedItem.kind === 'graph'
+					? localize('codeboardGraphClipboard', "Graph Block")
+					: copiedItem.kind === 'shape'
+						? localize('codeboardShapeClipboard', "Shape Block")
+						: localize('codeboardControlsClipboard', "Controls Block");
 
 		await this.clipboardService.writeText(clipboardText);
 	}
@@ -635,7 +765,11 @@ export class CodeBoardEditor extends EditorPane {
 			? this.createBoardTextBlock(duplicatedPosition, copiedItem.textValue, { width: copiedItem.width, height: copiedItem.height })
 			: copiedItem.kind === 'note'
 				? this.createBoardNoteBlock(duplicatedPosition, copiedItem.noteText)
-				: this.createBoardGraphBlock(duplicatedPosition);
+				: copiedItem.kind === 'graph'
+					? this.createBoardGraphBlock(duplicatedPosition)
+					: copiedItem.kind === 'shape'
+						? this.createBoardShapeBlock(duplicatedPosition)
+						: this.createBoardControlsBlock(duplicatedPosition);
 
 		this.setSelectedItem(duplicatedItem);
 	}
@@ -666,6 +800,22 @@ export class CodeBoardEditor extends EditorPane {
 		if (item.dataset.kind === 'graph') {
 			return {
 				kind: 'graph',
+				width: item.offsetWidth,
+				height: item.offsetHeight,
+			};
+		}
+
+		if (item.dataset.kind === 'shape') {
+			return {
+				kind: 'shape',
+				width: item.offsetWidth,
+				height: item.offsetHeight,
+			};
+		}
+
+		if (item.dataset.kind === 'controls') {
+			return {
+				kind: 'controls',
 				width: item.offsetWidth,
 				height: item.offsetHeight,
 			};
@@ -744,6 +894,9 @@ export class CodeBoardEditor extends EditorPane {
 		this.textFields.clear();
 		this.noteFields.clear();
 		this.selectedItemElement = undefined;
+		if (CodeBoardEditor.activeInstance === this) {
+			CodeBoardEditor.activeInstance = undefined;
+		}
 
 		super.dispose();
 	}
