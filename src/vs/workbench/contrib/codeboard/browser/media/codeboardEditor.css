@@ -1,0 +1,119 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.monaco-workbench .codeboard-editor-pane {
+	background: var(--vscode-editor-background);
+}
+
+.monaco-workbench .codeboard-editor {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	padding: 18px;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+.monaco-workbench .codeboard-editor-viewport {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	border-radius: 26px;
+	background: linear-gradient(180deg, #f8f7f4 0%, #f3f1ed 100%);
+	box-shadow:
+		0 20px 40px rgba(0, 0, 0, 0.18),
+		inset 0 0 0 1px rgba(92, 92, 92, 0.08);
+	outline: none;
+	scrollbar-color: rgba(120, 120, 120, 0.65) transparent;
+}
+
+.monaco-workbench .codeboard-editor-surface {
+	position: relative;
+	min-width: 3200px;
+	min-height: 2400px;
+	background-color: #f8f7f4;
+	background-image: radial-gradient(circle, rgba(78, 78, 78, 0.2) 1px, transparent 1.4px);
+	background-position: 12px 12px;
+	background-size: 24px 24px;
+}
+
+.monaco-workbench .codeboard-floating-pill {
+	position: absolute;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 10px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.88);
+	box-shadow:
+		0 8px 18px rgba(0, 0, 0, 0.08),
+		inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+	backdrop-filter: blur(12px);
+}
+
+.monaco-workbench .codeboard-title-pill {
+	top: 30px;
+	left: 34px;
+	padding-inline: 14px;
+}
+
+.monaco-workbench .codeboard-title-label {
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	color: rgba(42, 42, 42, 0.94);
+}
+
+.monaco-workbench .codeboard-toolbar-pill {
+	top: 30px;
+	left: 50%;
+	transform: translateX(-50%);
+	padding-inline: 8px;
+}
+
+.monaco-workbench .codeboard-zoom-pill {
+	left: 34px;
+	bottom: 30px;
+	padding-inline: 10px;
+}
+
+.monaco-workbench .codeboard-layout-pill {
+	right: 34px;
+	bottom: 30px;
+	padding-inline: 8px;
+}
+
+.monaco-workbench .codeboard-icon-button,
+.monaco-workbench .codeboard-zoom-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border: 0;
+	border-radius: 999px;
+	background: transparent;
+	color: rgba(60, 60, 60, 0.8);
+	cursor: default;
+}
+
+.monaco-workbench .codeboard-icon-button .codicon {
+	font-size: 15px;
+}
+
+.monaco-workbench .codeboard-zoom-button {
+	font-size: 20px;
+	line-height: 1;
+}
+
+.monaco-workbench .codeboard-zoom-label {
+	min-width: 44px;
+	font-size: 12px;
+	font-weight: 600;
+	text-align: center;
+	color: rgba(60, 60, 60, 0.85);
+}
