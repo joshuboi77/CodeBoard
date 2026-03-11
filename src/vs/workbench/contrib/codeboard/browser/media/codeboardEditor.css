@@ -168,7 +168,7 @@
 
 .monaco-workbench .codeboard-board-item-note,
 .monaco-workbench .codeboard-board-item-graph,
-.monaco-workbench .codeboard-board-item-shape,
+.monaco-workbench .codeboard-board-item-node,
 .monaco-workbench .codeboard-board-item-controls {
 	cursor: grab;
 }
@@ -219,7 +219,7 @@
 	background: rgba(255, 255, 255, 0.96);
 }
 
-.monaco-workbench .codeboard-board-item-shape {
+.monaco-workbench .codeboard-board-item-node {
 	background: rgba(255, 255, 255, 0.84);
 }
 
@@ -360,109 +360,42 @@
 	color: rgba(78, 78, 78, 0.78);
 }
 
-.monaco-workbench .codeboard-shape-shell {
-	display: flex;
-	flex: 1;
-	flex-direction: column;
-	justify-content: center;
-	gap: 8px;
-	padding: 18px 20px;
-	border-radius: 26px;
-	background:
-		linear-gradient(180deg, rgba(234, 242, 255, 0.96) 0%, rgba(221, 234, 255, 0.98) 100%);
-	box-shadow: inset 0 0 0 1px rgba(70, 116, 179, 0.14);
-	clip-path: polygon(11% 0, 89% 0, 100% 50%, 89% 100%, 11% 100%, 0 50%);
-}
-
-.monaco-workbench .codeboard-shape-title,
+.monaco-workbench .codeboard-node-title,
 .monaco-workbench .codeboard-controls-title {
 	font-size: 18px;
 	font-weight: 700;
 	color: rgba(28, 28, 28, 0.94);
 }
 
-.monaco-workbench .codeboard-shape-subtitle,
+.monaco-workbench .codeboard-node-subtitle,
 .monaco-workbench .codeboard-controls-subtitle {
 	font-size: 12px;
 	line-height: 1.45;
 	color: rgba(82, 82, 82, 0.82);
 }
 
-.monaco-workbench .codeboard-controls-rows {
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-	margin-top: 4px;
+.monaco-workbench .codeboard-node-caption {
+	margin-top: auto;
+	padding: 12px 14px;
+	border-radius: 14px;
+	background: rgba(243, 246, 252, 0.94);
+	box-shadow: inset 0 0 0 1px rgba(80, 97, 120, 0.08);
+	font-size: 12px;
+	line-height: 1.45;
+	color: rgba(68, 68, 68, 0.78);
 }
 
-.monaco-workbench .codeboard-controls-row {
+.monaco-workbench .codeboard-controls-placeholder {
+	margin-top: auto;
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	padding: 10px 12px;
-	border-radius: 12px;
-	background: rgba(255, 255, 255, 0.92);
-	box-shadow: inset 0 0 0 1px rgba(68, 92, 132, 0.08);
-}
-
-.monaco-workbench .codeboard-controls-row-label {
-	font-size: 13px;
-	font-weight: 600;
-	color: rgba(34, 34, 34, 0.9);
-}
-
-.monaco-workbench .codeboard-controls-row-value {
-	position: relative;
-	flex-shrink: 0;
-}
-
-.monaco-workbench .codeboard-controls-toggle {
-	width: 38px;
-	height: 22px;
-	border-radius: 999px;
-	background: rgba(61, 133, 245, 0.92);
-}
-
-.monaco-workbench .codeboard-controls-toggle::after {
-	content: '';
-	position: absolute;
-	top: 3px;
-	right: 3px;
-	width: 16px;
-	height: 16px;
-	border-radius: 999px;
-	background: rgba(255, 255, 255, 0.98);
-}
-
-.monaco-workbench .codeboard-controls-slider {
-	width: 94px;
-	height: 8px;
-	border-radius: 999px;
-	background: rgba(63, 98, 152, 0.14);
-}
-
-.monaco-workbench .codeboard-controls-slider::after {
-	content: '';
-	position: absolute;
-	top: -3px;
-	left: 54px;
-	width: 14px;
-	height: 14px;
-	border-radius: 999px;
-	background: rgba(61, 133, 245, 0.94);
-}
-
-.monaco-workbench .codeboard-controls-pill {
-	min-width: 56px;
-	padding: 5px 10px;
-	border-radius: 999px;
-	background: rgba(222, 235, 255, 0.96);
+	justify-content: center;
+	min-height: 78px;
+	padding: 14px;
+	border: 1px dashed rgba(68, 92, 132, 0.28);
+	border-radius: 16px;
+	background: rgba(255, 255, 255, 0.82);
 	font-size: 12px;
-	font-weight: 700;
-	text-align: center;
-	color: rgba(52, 86, 138, 0.95);
-}
-
-.monaco-workbench .codeboard-controls-pill::after {
-	content: '0.42';
+	font-weight: 600;
+	color: rgba(74, 98, 140, 0.86);
 }

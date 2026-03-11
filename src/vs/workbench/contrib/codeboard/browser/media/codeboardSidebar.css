@@ -36,6 +36,12 @@
 	margin-top: 4px;
 }
 
+.monaco-workbench .codeboard-sidebar-action-group {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
 .monaco-workbench .codeboard-sidebar-button {
 	display: flex;
 	flex-direction: column;
@@ -61,6 +67,11 @@
 	transform: translateY(-1px);
 }
 
+.monaco-workbench .codeboard-sidebar-button.active {
+	border-color: var(--vscode-focusBorder);
+	background: color-mix(in srgb, var(--vscode-sideBar-background) 72%, white 28%);
+}
+
 .monaco-workbench .codeboard-sidebar-button-title {
 	font-size: 13px;
 	font-weight: 700;
@@ -70,4 +81,38 @@
 	font-size: 12px;
 	line-height: 1.4;
 	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .codeboard-sidebar-dropdown {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	padding: 6px 0 0;
+	border: 1px solid var(--vscode-widget-border);
+	border-radius: 10px;
+	background: color-mix(in srgb, var(--vscode-sideBar-background) 94%, white 6%);
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+	overflow: hidden;
+}
+
+.monaco-workbench .codeboard-sidebar-dropdown.hidden,
+.monaco-workbench .codeboard-sidebar-dropdown-status.hidden,
+.monaco-workbench .codeboard-sidebar-tree-container.hidden {
+	display: none;
+}
+
+.monaco-workbench .codeboard-sidebar-dropdown-status {
+	padding: 4px 12px 10px;
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .codeboard-sidebar-tree-container {
+	height: 252px;
+	overflow: hidden;
+}
+
+.monaco-workbench .codeboard-sidebar-tree-container .monaco-list-row {
+	border-radius: 0;
 }

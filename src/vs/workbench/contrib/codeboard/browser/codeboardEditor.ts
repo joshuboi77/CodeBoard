@@ -10,7 +10,9 @@ import { Action } from '../../../../base/common/actions.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { clamp } from '../../../../base/common/numbers.js';
+import { basenameOrAuthority } from '../../../../base/common/resources.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
+import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
@@ -27,7 +29,12 @@ interface ICodeBoardToolbarAction {
 	readonly disabled?: boolean;
 }
 
-type CodeBoardItemKind = 'text' | 'note' | 'graph' | 'shape' | 'controls';
+type CodeBoardItemKind = 'text' | 'note' | 'graph' | 'node' | 'controls';
+
+interface ICodeBoardNodeSource {
+	readonly label: string;
+	readonly resource: URI;
+}
 
 interface ICodeBoardCopiedItem {
 	readonly kind: CodeBoardItemKind;
@@ -35,6 +42,8 @@ interface ICodeBoardCopiedItem {
 	readonly height: number;
 	readonly textValue?: string;
 	readonly noteText?: string;
+	readonly nodeLabel?: string;
+	readonly nodeResource?: string;
 }
 
 export class CodeBoardEditor extends EditorPane {
@@ -300,15 +309,17 @@ export class CodeBoardEditor extends EditorPane {
 		}
 	}
 
-	public createWorkspaceObject(kind: 'shape' | 'controls'): void {
+	public createWorkspaceObject(kind: 'controls'): void {
 		switch (kind) {
-			case 'shape':
-				this.addShapeBlock();
-				break;
 			case 'controls':
 				this.addControlsBlock();
 				break;
 		}
+	}
+
+	public createWorkspaceNodeFromFile(source: ICodeBoardNodeSource): void {
+		const item = this.createBoardNodeBlock(undefined, source);
+		this.setSelectedItem(item);
 	}
 
 	private addTextBlock(): void {
@@ -384,11 +395,6 @@ export class CodeBoardEditor extends EditorPane {
 		this.setSelectedItem(item);
 	}
 
-	private addShapeBlock(): void {
-		const item = this.createBoardShapeBlock();
-		this.setSelectedItem(item);
-	}
-
 	private addControlsBlock(): void {
 		const item = this.createBoardControlsBlock();
 		this.setSelectedItem(item);
@@ -434,24 +440,27 @@ export class CodeBoardEditor extends EditorPane {
 		return item;
 	}
 
-	private createBoardShapeBlock(position = this.getSpawnPosition(320, 192)): HTMLElement {
-		const item = this.createBoardItem('shape', 320, 192, localize('codeboardShapeBadge', "Shape"), position);
-		item.classList.add('codeboard-board-item-shape');
-
-		const shell = document.createElement('div');
-		shell.className = 'codeboard-shape-shell';
+	private createBoardNodeBlock(position = this.getSpawnPosition(320, 188), source: ICodeBoardNodeSource): HTMLElement {
+		const item = this.createBoardItem('node', 320, 188, localize('codeboardNodeBadge', "Node"), position);
+		item.classList.add('codeboard-board-item-node');
+		item.dataset.sourceLabel = source.label;
+		item.dataset.sourceResource = source.resource.toString();
 
 		const title = document.createElement('div');
-		title.className = 'codeboard-shape-title';
-		title.textContent = localize('codeboardShapeTitle', "Code Object");
+		title.className = 'codeboard-node-title';
+		title.textContent = basenameOrAuthority(source.resource);
 
 		const subtitle = document.createElement('div');
-		subtitle.className = 'codeboard-shape-subtitle';
-		subtitle.textContent = localize('codeboardShapeSubtitle', "Use this as the visual shell for a struct or function part.");
+		subtitle.className = 'codeboard-node-subtitle';
+		subtitle.textContent = source.label;
 
-		shell.appendChild(title);
-		shell.appendChild(subtitle);
-		item.appendChild(shell);
+		const caption = document.createElement('div');
+		caption.className = 'codeboard-node-caption';
+		caption.textContent = localize('codeboardNodeCaption', "Mock code node linked to a workspace file.");
+
+		item.appendChild(title);
+		item.appendChild(subtitle);
+		item.appendChild(caption);
 
 		const store = this.createItemStore(item);
 		this.registerSelectableItem(item, store);
@@ -462,36 +471,24 @@ export class CodeBoardEditor extends EditorPane {
 	}
 
 	private createBoardControlsBlock(position = this.getSpawnPosition(300, 220)): HTMLElement {
-		const item = this.createBoardItem('controls', 300, 220, localize('codeboardControlsBadge', "Controls"), position);
+		const item = this.createBoardItem('controls', 300, 184, localize('codeboardControlsBadge', "Controls"), position);
 		item.classList.add('codeboard-board-item-controls');
 
 		const title = document.createElement('div');
 		title.className = 'codeboard-controls-title';
-		title.textContent = localize('codeboardControlsTitle', "Runtime Controls");
+		title.textContent = localize('codeboardControlsTitle', "Controls Placeholder");
 
 		const subtitle = document.createElement('div');
 		subtitle.className = 'codeboard-controls-subtitle';
-		subtitle.textContent = localize('codeboardControlsSubtitle', "Bind parameters, toggles, and sliders to a future code object.");
+		subtitle.textContent = localize('codeboardControlsSubtitle', "Parameter widgets will live here after nodes start exposing fields and values.");
 
-		const rows = document.createElement('div');
-		rows.className = 'codeboard-controls-rows';
-
-		rows.appendChild(this.createControlRow(
-			localize('codeboardControlsRowToggle', "Enabled"),
-			'codeboard-controls-toggle'
-		));
-		rows.appendChild(this.createControlRow(
-			localize('codeboardControlsRowSlider', "Threshold"),
-			'codeboard-controls-slider'
-		));
-		rows.appendChild(this.createControlRow(
-			localize('codeboardControlsRowValue', "Bias"),
-			'codeboard-controls-pill'
-		));
+		const placeholder = document.createElement('div');
+		placeholder.className = 'codeboard-controls-placeholder';
+		placeholder.textContent = localize('codeboardControlsPlaceholder', "Placeholder panel");
 
 		item.appendChild(title);
 		item.appendChild(subtitle);
-		item.appendChild(rows);
+		item.appendChild(placeholder);
 
 		const store = this.createItemStore(item);
 		this.registerSelectableItem(item, store);
@@ -499,22 +496,6 @@ export class CodeBoardEditor extends EditorPane {
 		this.registerContextMenu(item, store);
 
 		return item;
-	}
-
-	private createControlRow(labelText: string, valueClassName: string): HTMLElement {
-		const row = document.createElement('div');
-		row.className = 'codeboard-controls-row';
-
-		const label = document.createElement('div');
-		label.className = 'codeboard-controls-row-label';
-		label.textContent = labelText;
-
-		const value = document.createElement('div');
-		value.className = `codeboard-controls-row-value ${valueClassName}`;
-
-		row.appendChild(label);
-		row.appendChild(value);
-		return row;
 	}
 
 	private createBoardItem(kind: CodeBoardItemKind, width: number, height: number, badgeText: string | undefined, position = this.getSpawnPosition(width, height)): HTMLElement {
@@ -747,8 +728,8 @@ export class CodeBoardEditor extends EditorPane {
 				? (copiedItem.noteText || localize('codeboardEmptyNoteClipboard', "Note Block"))
 				: copiedItem.kind === 'graph'
 					? localize('codeboardGraphClipboard', "Graph Block")
-					: copiedItem.kind === 'shape'
-						? localize('codeboardShapeClipboard', "Shape Block")
+					: copiedItem.kind === 'node'
+						? (copiedItem.nodeLabel || localize('codeboardNodeClipboard', "Node Block"))
 						: localize('codeboardControlsClipboard', "Controls Block");
 
 		await this.clipboardService.writeText(clipboardText);
@@ -767,8 +748,11 @@ export class CodeBoardEditor extends EditorPane {
 				? this.createBoardNoteBlock(duplicatedPosition, copiedItem.noteText)
 				: copiedItem.kind === 'graph'
 					? this.createBoardGraphBlock(duplicatedPosition)
-					: copiedItem.kind === 'shape'
-						? this.createBoardShapeBlock(duplicatedPosition)
+					: copiedItem.kind === 'node'
+						? this.createBoardNodeBlock(duplicatedPosition, {
+							label: copiedItem.nodeLabel || localize('codeboardNodeDuplicateFallbackLabel', "Selected workspace file"),
+							resource: copiedItem.nodeResource ? URI.parse(copiedItem.nodeResource) : URI.parse('untitled:codeboard-node'),
+						})
 						: this.createBoardControlsBlock(duplicatedPosition);
 
 		this.setSelectedItem(duplicatedItem);
@@ -805,11 +789,13 @@ export class CodeBoardEditor extends EditorPane {
 			};
 		}
 
-		if (item.dataset.kind === 'shape') {
+		if (item.dataset.kind === 'node') {
 			return {
-				kind: 'shape',
+				kind: 'node',
 				width: item.offsetWidth,
 				height: item.offsetHeight,
+				nodeLabel: item.dataset.sourceLabel,
+				nodeResource: item.dataset.sourceResource,
 			};
 		}
 
